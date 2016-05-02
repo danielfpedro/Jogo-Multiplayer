@@ -1,0 +1,357 @@
+<!doctype html>
+<html class="no-js" lang="">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <title>Início</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <link rel="apple-touch-icon" href="apple-touch-icon.png">
+        <!-- Place favicon.ico in the root directory -->
+
+        <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.min.css">
+
+        <style>
+            .track{
+                height: 50px;
+                width: 600px;
+                background-color: gray;
+                margin-bottom: 1px;
+            }
+            .player {
+                width: 50px;
+                height: 50px;
+                background-color: red;
+            }
+            .player2 {
+                background-color: blue;   
+            }
+            .pad{
+                background-color: gray;
+                width: 600px;
+                height: 400px;
+                position: relative;
+            }
+            .button {
+                width: 50px;
+                height: 50px;
+
+                background-color: green;
+                position: relative;
+            }
+        </style>
+    </head>
+    <body>
+        <!--[if lt IE 8]>
+            <p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
+        <![endif]-->
+
+        <!-- Add your site or application content here -->
+        <div class="container" style="">
+            <div class="row">
+                <div class="col-md-7 col-md-offset-2">
+                    <div class="row">
+                        <div class="col-md-12 game-uuid" style="padding: 10px;">
+                            
+                        </div>
+                    </div>
+                    <div class="row game-on" style="display: none;">
+                        <div class="col-md-5 red" style="font-weight: bold; font-size: 26px;">
+                        </div>
+                        <div class="col-md-2 text-center" style="font-weight: bold; font-size: 26px;">
+                            X
+                        </div>
+                        <div class="col-md-5 blue" style="font-weight: bold; font-size: 26px;">
+                        </div>
+                    </div>
+                    <div class="row countdown" style="padding: 20px; display: none;">
+                        <div class="col-md-12 text-center" style="font-size: 24px; font-weight: bold"></div>
+                    </div>
+                    <div class="row pre-game">
+                        <div class="col-md-12">
+
+                            <form action="get" id="pre-game">
+                                <div class="form-group">
+                                    <label for="name">Nome</label>
+                                    <input type="text" id="name" autocomplete="off" class="form-control">
+                                </div>
+                                <div class="form-group">
+                                    <label for="name">Game uuid</label>
+                                    <input type="text" id="game-uuid" autocomplete="off" class="form-control">
+                                </div>
+                                <div class="form-group">
+                                    <button type="submit" class="btn btn-default btn-create-game">Criar jogo</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="game-on" style="display: none;">
+                        <div class="row" style="padding: 40px;">
+                            <div class="col-md-12 text-center">
+                                <button type="button" class="btn btn-success btn-lg go-ready">Estou pronto!</button>    
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12 final-message text-center">
+                                
+                            </div>
+                        </div>
+                        <div class="row game-started" style="margin-left: 10px; display: none;">
+                            <div class="col-md-12">
+                                <div class="track-container">
+                                    <div class="track">
+                                        <div class="player player1" data-player="red"></div>
+                                    </div>
+                                    <div class="track">
+                                        <div class="player player2" data-player="blue"></div>
+                                    </div>
+                                </div>  
+                            </div>
+                            <div class="col-md-12">
+                                <div class="pad">
+                                    <div class="button"></div>
+                                </div>  
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script src="bower_components/jquery/dist/jquery.min.js"></script>
+        <script src="bower_components/firebase/firebase.js"></script>
+
+        <script src="js/plugins.js"></script>
+        <script src="js/main.js"></script>
+
+        <script>
+            $(function(){
+                var ref = new Firebase("https://teste-ionic.firebaseio.com");
+
+                var player = 'red';
+                var player2 = 'blue';
+                var uuid;
+                var position = 0;
+
+                $('#game-uuid').keyup(function(){
+                    var value = $(this).val();
+
+                    var text = 'Criar jogo';
+
+                    if (value) {
+                        text = 'Connectar em \''+value+'\'';
+                    }
+                    $('.btn-create-game').text(text);
+                });
+
+                function imReady (){
+                    var game = ref
+                        .child('game')
+                        .child(uuid)
+                        .child(player);
+                    
+                    var data = {ready: 1};
+
+                    game.update(data);
+
+                    $('.go-ready').fadeOut();
+                }
+                function recordMove (){
+                    var game = ref
+                        .child('game')
+                        .child(uuid)
+                        .child(player);
+                    
+                    var data = {position: position};
+
+                    game.update(data);
+
+                }
+
+                $('.button').click(function(){
+                    movePlayer($(this));
+                });
+
+                function move(p, pos) {
+                    $('[data-player="'+p+'"]').css('margin-left', (pos * 50) + 'px');
+                }
+                function movePlayer($this){
+                    var number = getRandomInt(1, 11);
+                    var valueToMoveH = (50 * getRandomInt(1, 11)) + 'px';
+                    var valueToMoveV = (50 * getRandomInt(1, 4)) + 'px';
+                    // console.log('Valor para mover');
+                    // console.log(valueToMove);
+                    $this.hide();
+                    $this.css({
+                        'left': valueToMoveH,
+                        'top': valueToMoveV
+                    });
+                    $this.show();
+
+                    position++;
+                    console.log('position');
+                    console.log(position);
+                    if (position <= 11) {
+                        move(player, position);
+                        recordMove();    
+                    } else {
+                        //endGame();
+                    }
+                }
+
+                // $('.go-ready').click(function(){
+                //     startCountdown();
+                // });
+                $('.go-ready').click(function(){
+                    imReady();
+                });
+
+                function startCountdown(){
+                    var it = 3;
+                    var timer = window.setInterval(function(){
+                        console.log('Interval iteration');
+                        console.log(it);
+                        $('.countdown > div').text(it);
+                        it--;
+                        if (it === 0) {
+                            $('.countdown > div').text('GO!');
+                            startGame();
+                            window.clearInterval(timer);
+                        }
+                    }, 1000);
+                }
+
+                function startGame () {
+                    $('.countdown').hide();
+                    $('.game-started').show();
+                }
+
+                function connectToGame(uuid) {
+                    var game = ref
+                        .child('game')
+                        .child(uuid);
+
+                    game.on("value", function(snap) {
+                        var snapData = snap.val();
+                        console.log(snapData);
+
+                        $('.game-uuid').text(uuid);
+                        var redLabel = snapData.red.name;
+                        redLabel += (snapData.red.ready) ? ' (Pronto!)' : '';
+                        $('.red').text(redLabel);
+
+                        if (typeof snapData.blue != 'undefined') {
+                            var blueLabel = snapData.blue.name;
+                            blueLabel += (snapData.blue.ready) ? ' (Pronto!)' : '';
+                            $('.blue').text(blueLabel);
+
+                            if (snapData.red.ready && snapData.red.ready === 1) {
+                                $('.countdown').fadeIn('fast');
+                                startCountdown();
+                            }
+
+                            if (snapData.red.position >= 11 || snapData.blue.position >= 11) {
+                                console.log('Fimm!');
+                                setFinalMessage(snapData);
+                            } else {
+                                console.log('Não fim');
+                            }
+
+                            move(player2, snapData[player2].position);
+
+                        }
+                        
+                    }, function (errorObject) {
+                    });
+                }
+
+                function setFinalMessage(snap)
+                {
+                    var text = 'Você perdeu hahaha';
+                    if (snap[player].position >= snap[player2].position) {
+                        text = 'Você venceu! hiiiii';
+                        console.log('Voce venceu');
+                    } else {
+                        console.log('Voce perdeu');
+                    }
+
+                    $('.final-message').html('<h2>' + text + '</h2>');
+                }
+
+                $('form#pre-game').submit(function(){
+                    uuid = $('#game-uuid').val();
+                    var newGame = false;
+                    if (!uuid) {
+                        uuid = getRandomInt(1, 10000);    
+                        newGame = true;
+                    }
+
+                    var name = $('#name').val();
+
+                    var game = ref
+                        .child('game')
+                        .child(uuid);
+
+                    var data = {
+                        red: {
+                            name: name,
+                            ready: 0,
+                            position: 0,
+                            winner: 0
+                        }
+                    };
+                    if (newGame) {
+                        game.set(data, function(error){
+                            if (!error) {
+                                $('.pre-game').fadeOut(function(){
+                                    $('.game-on').fadeIn(function(){
+                                        connectToGame(uuid) ;    
+                                    });    
+                                });
+                            }
+                        });
+                    } else {
+                        player = 'blue';
+                        player2 = 'red';
+
+                        data = {
+                            blue: {
+                                name: name,
+                                ready: 0,
+                                position: 0
+                            }
+                        };
+
+                        game.update(data, function(error){
+                            if (!error) {
+                                $('.pre-game').fadeOut(function(){
+                                    $('.game-on').fadeIn(function(){
+                                        connectToGame(uuid) ;    
+                                    });    
+                                });
+                            }
+                        });
+                    }
+
+                    return false;
+                });
+
+                function getRandomInt(min, max) {
+                    return Math.floor(Math.random() * (max - min + 1)) + min;
+                }
+            });
+
+        </script>
+
+        <!-- Google Analytics: change UA-XXXXX-X to be your site's ID. -->
+<!--         <script>
+            (function(b,o,i,l,e,r){b.GoogleAnalyticsObject=l;b[l]||(b[l]=
+            function(){(b[l].q=b[l].q||[]).push(arguments)});b[l].l=+new Date;
+            e=o.createElement(i);r=o.getElementsByTagName(i)[0];
+            e.src='https://www.google-analytics.com/analytics.js';
+            r.parentNode.insertBefore(e,r)}(window,document,'script','ga'));
+            ga('create','UA-XXXXX-X','auto');ga('send','pageview');
+        </script> -->
+    </body>
+</html>
