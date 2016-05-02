@@ -306,6 +306,9 @@
 
                     window.setTimeout(function(){
                         gameStarted = false;
+                        position = 0;
+                        $('[data-player="'+player+'"]').css('margin-left', '0px');
+                        $('[data-player="'+player2+'"]').css('margin-left', '0px');
                     }, 1000);
                 }
 
