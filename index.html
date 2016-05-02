@@ -3,7 +3,7 @@
     <head>
         <meta charset="utf-8">
         <meta http-equiv="x-ua-compatible" content="ie=edge">
-        <title>Início</title>
+        <title>Jogo Loko</title>
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
@@ -133,6 +133,7 @@
                 var player2 = 'blue';
                 var uuid;
                 var position = 0;
+                var gameStarted = false;
 
                 $('#game-uuid').keyup(function(){
                     var value = $(this).val();
@@ -201,7 +202,8 @@
                 }
 
                 // $('.go-ready').click(function(){
-                //     startCountdown();
+                //     
+                //     untdown();
                 // });
                 $('.go-ready').click(function(){
                     imReady();
@@ -223,8 +225,8 @@
                 }
 
                 function startGame () {
-                    $('.countdown').hide();
                     $('.game-started').show();
+                    $('.final-message').html('');
                 }
 
                 function connectToGame(uuid) {
@@ -246,14 +248,20 @@
                             blueLabel += (snapData.blue.ready) ? ' (Pronto!)' : '';
                             $('.blue').text(blueLabel);
 
-                            if (snapData.red.ready && snapData.red.ready === 1) {
-                                $('.countdown').fadeIn('fast');
-                                startCountdown();
+                            if (snapData.red.ready && snapData.blue.ready === 1) {
+                                if (!gameStarted) {
+                                    $('.countdown').fadeIn('fast');
+                                    gameStarted = true;
+                                    startCountdown();
+                                }
+                            } else {
+                                console.log('Não pronto');
                             }
 
                             if (snapData.red.position >= 11 || snapData.blue.position >= 11) {
                                 console.log('Fimm!');
                                 setFinalMessage(snapData);
+                                $('.game-started').hide();
                             } else {
                                 console.log('Não fim');
                             }
@@ -268,6 +276,8 @@
 
                 function setFinalMessage(snap)
                 {
+                    $('.game-started').hide();
+
                     var text = 'Você perdeu hahaha';
                     if (snap[player].position >= snap[player2].position) {
                         text = 'Você venceu! hiiiii';
@@ -277,6 +287,26 @@
                     }
 
                     $('.final-message').html('<h2>' + text + '</h2>');
+                    $('.game-started').hide();
+                    $('.go-ready').fadeIn();
+
+                    var updatePlayer = ref
+                        .child('game')
+                        .child(uuid)
+                        .child(player);
+
+                    updatePlayer.update({position: 0, ready: 0});
+
+                    var updatePlayer2 = ref
+                        .child('game')
+                        .child(uuid)
+                        .child(player2);
+
+                    updatePlayer2.update({position: 0, ready: 0});
+
+                    window.setTimeout(function(){
+                        gameStarted = false;
+                    }, 1000);
                 }
 
                 $('form#pre-game').submit(function(){
